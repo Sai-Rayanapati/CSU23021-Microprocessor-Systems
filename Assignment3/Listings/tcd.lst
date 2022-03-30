@@ -1,0 +1,497 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Time since start of program dispaly using interut hand
+                       lers
+    2 00000000         ; (c) Vitali Borsak, 2021.
+    3 00000000         
+    4 00000000                 area             tcd,code,readonly
+    5 00000000                 export           __main
+    6 00000000         __main
+    7 00000000         
+    8 00000000         ; Definitions  -- references to 'UM' are to the User Man
+                       ual.
+    9 00000000         
+   10 00000000         ; Timer Stuff -- UM, Table 173
+   11 00000000         
+   12 00000000 E0004000 
+                       T0      equ              0xE0004000  ; Timer 0 Base Addr
+                                                            ess
+   13 00000000 E0008000 
+                       T1      equ              0xE0008000
+   14 00000000         
+   15 00000000 00000000 
+                       IR      equ              0           ; Add this to a tim
+                                                            er's base address t
+                                                            o get actual regist
+                                                            er address
+   16 00000000 00000004 
+                       TCR     equ              4
+   17 00000000 00000014 
+                       MCR     equ              0x14
+   18 00000000 00000018 
+                       MR0     equ              0x18
+   19 00000000         
+   20 00000000 00000002 
+                       TimerCommandReset
+                               equ              2
+   21 00000000 00000001 
+                       TimerCommandRun
+                               equ              1
+   22 00000000 00000003 
+                       TimerModeResetAndInterrupt
+                               equ              3
+   23 00000000 00000001 
+                       TimerResetTimer0Interrupt
+                               equ              1
+   24 00000000 000000FF 
+                       TimerResetAllInterrupts
+                               equ              0xFF
+   25 00000000         
+   26 00000000         ; VIC Stuff -- UM, Table 41
+   27 00000000 FFFFF000 
+                       VIC     equ              0xFFFFF000  ; VIC Base Address
+   28 00000000 00000010 
+                       IntEnable
+                               equ              0x10
+   29 00000000 00000030 
+                       VectAddr
+                               equ              0x30
+   30 00000000 00000100 
+                       VectAddr0
+                               equ              0x100
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   31 00000000 00000200 
+                       VectCtrl0
+                               equ              0x200
+   32 00000000         
+   33 00000000 00000004 
+                       Timer0ChannelNumber
+                               equ              4           ; UM, Table 63
+   34 00000000 00000010 
+                       Timer0Mask
+                               equ              1<<Timer0ChannelNumber 
+                                                            ; UM, Table 63
+   35 00000000 00000005 
+                       IRQslot_en
+                               equ              5           ; UM, Table 58
+   36 00000000         
+   37 00000000 E0028018 
+                       IO1DIR  EQU              0xE0028018
+   38 00000000 E0028014 
+                       IO1SET  EQU              0xE0028014
+   39 00000000 E002801C 
+                       IO1CLR  EQU              0xE002801C
+   40 00000000 E0028010 
+                       IO1PIN  EQU              0xE0028010
+   41 00000000         
+   42 00000000 E0008004 
+                       T1TCR   EQU              0xE0008004
+   43 00000000 E0008018 
+                       T1MR0   EQU              0xE0008018
+   44 00000000 E0008014 
+                       T1MCR   EQU              0xE0008014
+   45 00000000         
+   46 00000000         ; initialisation code
+   47 00000000         
+   48 00000000         ; Initialise the VIC
+   49 00000000 E59F019C        ldr              r0,=VIC     ; looking at you, V
+                                                            IC!
+   50 00000004         
+   51 00000004 E59F119C        ldr              r1,=irqhan
+   52 00000008 E5801100        str              r1,[r0,#VectAddr0] ; associate 
+                                                            our interrupt handl
+                                                            er with Vectored In
+                                                            terrupt 0
+   53 0000000C         
+   54 0000000C E3A01024        mov              r1,#Timer0ChannelNumber+(1<<IRQ
+slot_en)
+   55 00000010 E5801200        str              r1,[r0,#VectCtrl0] ; make Timer
+                                                             0 interrupts the s
+                                                            ource of Vectored I
+                                                            nterrupt 0
+   56 00000014         
+   57 00000014 E3A01010        mov              r1,#Timer0Mask
+   58 00000018 E5801010        str              r1,[r0,#IntEnable] ; enable Tim
+                                                            er 0 interrupts to 
+                                                            be recognised by th
+                                                            e VIC
+   59 0000001C         
+   60 0000001C E3A01000        mov              r1,#0
+   61 00000020 E5801030        str              r1,[r0,#VectAddr] ; remove any 
+                                                            pending interrupt (
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+                                                            may not be needed)
+   62 00000024         
+   63 00000024         ; Initialise Timer 0
+   64 00000024 E59F0180        ldr              r0,=T0      ; looking at you, T
+                                                            imer 0!
+   65 00000028         
+   66 00000028 E3A01002        mov              r1,#TimerCommandReset
+   67 0000002C E5801004        str              r1,[r0,#TCR]
+   68 00000030         
+   69 00000030 E3A010FF        mov              r1,#TimerResetAllInterrupts
+   70 00000034 E5801000        str              r1,[r0,#IR]
+   71 00000038         
+   72 00000038 E3A01E2E        ldr              r1,=(14745600/20000)- 1 ; used 
+                                                            14745600 ticks as r
+                                                            ecommended in lectu
+                                                            res, however, varie
+                                                            s depending on hard
+                                                            ware, therefore was
+                                                             way too slow for m
+                                                            e
+   73 0000003C         ; to show seconds use 14745600- 1 (to display the speed 
+                       of the actualy hardware accurately)
+   74 0000003C         ; to show minutes faster use (14745600/40)- 1 (will be d
+                       ifferent depending on hardware)
+   75 0000003C         ; to show hours faster use (14745600/4000)- 1 (will be d
+                       ifferent depending on hardware)
+   76 0000003C E5801018        str              r1,[r0,#MR0]
+   77 00000040         
+   78 00000040 E3A01003        mov              r1,#TimerModeResetAndInterrupt
+   79 00000044 E5801014        str              r1,[r0,#MCR]
+   80 00000048         
+   81 00000048 E3A01001        mov              r1,#TimerCommandRun
+   82 0000004C E5801004        str              r1,[r0,#TCR]
+   83 00000050         
+   84 00000050         ;from here, initialisation is finished, so it should be 
+                       the main body of the main program
+   85 00000050         
+   86 00000050         ; Initialising the GPIO1
+   87 00000050 E59F0158        ldr              r0,=IO1DIR
+   88 00000054 E3E04000        mov              r4,#0xffffffff ; select P1.31--
+                                                            P1.0
+   89 00000058 E5804000        str              r4,[r0]     ; make them outputs
+                                                            
+   90 0000005C E59F2150        ldr              r2,=IO1CLR
+   91 00000060 E5824000        str              r4,[r2]     ; set them to turn 
+                                                            the LEDs off
+   92 00000064 E59F114C        ldr              r1,=IO1SET
+   93 00000068 E59F314C        ldr              r3,=IO1PIN
+   94 0000006C E59F414C        ldr              r4,=0x00f00f00 ; forced to used
+                                                             ldr here as mov wa
+                                                            s giving an error
+   95 00000070 E5814000        str              r4,[r1]     ; set the divifing 
+                                                            bits to be displaye
+                                                            d
+   96 00000074         
+   97 00000074         while1
+   98 00000074 E59F4148        ldr              r4,=t       ; load in memory ad
+                                                            dress for t
+   99 00000078 E5945000        ldr              r5,[r4]     ; read in the curre
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+                                                            nt time (seconds)
+  100 0000007C E355003C        cmp              r5,#60      ; check that the cu
+                                                            rrent amount of sec
+                                                            onds elapsed is not
+                                                             equal to 60
+  101 00000080 3A000001        blo              skip1
+  102 00000084 EB000015        bl               minutePassed ; if 60 seconds ha
+                                                            ve passed, call min
+                                                            utePassed subroutin
+                                                            e
+  103 00000088 EAFFFFF9        b                while1
+  104 0000008C         
+  105 0000008C         skip1
+  106 0000008C EB00000A        bl               divide      ; divide the time e
+                                                            lapsed
+  107 00000090 E1A06206        lsl              r6,#4       ; move the multiple
+                                                             of 10 of the elaps
+                                                            ed time into bits P
+                                                            1.7 - P1.4
+  108 00000094 E0855006        add              r5,r6       ; add the multiple 
+                                                            of 10 of the elapse
+                                                            d time with the sin
+                                                            gle digit
+  109 00000098 E5936000        ldr              r6,[r3]     ; load in the curre
+                                                            nt status of the IO
+                                                            1PIN
+  110 0000009C E3C660FF        and              r6,#0xffffff00 ; remove the pre
+                                                            vious bits in the s
+                                                            econds region, whil
+                                                            e keeping the minut
+                                                            es, hours and divid
+                                                            ing bits still ther
+                                                            e
+  111 000000A0 E0855006        add              r5,r6       ; add the new secon
+                                                            ds to the current t
+                                                            ime
+  112 000000A4 E5815000        str              r5,[r1]     ; set the bits of t
+                                                            he new time
+  113 000000A8 E3E06000        ldr              r6,=0xffffffff
+  114 000000AC E0255006        eor              r5,r6       ; get the 0'd out b
+                                                            its
+  115 000000B0 E5825000        str              r5,[r2]     ; clear the bits th
+                                                            at are meant to be 
+                                                            0's
+  116 000000B4 EAFFFFEE        b                while1      ; loop back around
+  117 000000B8         
+  118 000000B8 EAFFFFFE 
+                       fin     b                fin
+  119 000000BC         
+  120 000000BC         divide
+  121 000000BC E3A06000        mov              r6,#0       ; result
+  122 000000C0 E3A0700A        mov              r7,#10      ; divisor
+  123 000000C4         
+  124 000000C4         divideLoop
+  125 000000C4 E355000A        cmp              r5,#10      ; check that the ru
+                                                            nning total is stil
+                                                            l divisible by 10
+  126 000000C8 AA000000        bge              notEnd
+  127 000000CC EA000002        b                end         ; if it can#t be di
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+                                                            vided further, end 
+                                                            the division
+  128 000000D0         
+  129 000000D0         notEnd
+  130 000000D0 E0455007        sub              r5,r7       ; subtract 10 from 
+                                                            the running total
+  131 000000D4 E2866001        add              r6,#1       ; add one to the re
+                                                            sult
+  132 000000D8 EAFFFFF9        b                divideLoop
+  133 000000DC         
+  134 000000DC         end
+  135 000000DC E12FFF1E        bx               lr          ; exit subroutine
+  136 000000E0         
+  137 000000E0         
+  138 000000E0         minutePassed
+  139 000000E0 E92D40E0        stmfd            sp!,{r5-r7,lr} ; the lr will be
+                                                             restored to the pc
+                                                            
+  140 000000E4         
+  141 000000E4 E5945004        ldr              r5,[r4,#4]  ; read in the curre
+                                                            nt time (minutes)
+  142 000000E8 E2855001        add              r5,#1       ; increment the min
+                                                            utes by 1
+  143 000000EC E5845004        str              r5,[r4,#4]  ; store back the mi
+                                                            nutes into memory
+  144 000000F0 E355003C        cmp              r5,#60      ; check that the am
+                                                            ount of minutes ela
+                                                            psed is not 60
+  145 000000F4 3A000001        blo              skip2
+  146 000000F8 EB00000F        bl               hourPassed  ; if 60 minutes hav
+                                                            e passed, call hour
+                                                            Passed subroutine
+  147 000000FC EAFFFFDC        b                while1
+  148 00000100         
+  149 00000100         skip2
+  150 00000100 EBFFFFED        bl               divide      ; divide the time e
+                                                            lapsed
+  151 00000104 E1A06206        lsl              r6,#4       ; move the multiple
+                                                             of 10 of the elaps
+                                                            ed time into bits P
+                                                            1.7 - P1.4
+  152 00000108 E0855006        add              r5,r6       ; add the multiple 
+                                                            of 10 of the elapse
+                                                            d time with the sin
+                                                            gle digit
+  153 0000010C E5936000        ldr              r6,[r3]     ; load in the curre
+                                                            nt status of the IO
+                                                            1PIN
+  154 00000110 E59F70B0        ldr              r7,=0xfff00f00 ; remove the pre
+                                                            vious bits in the s
+                                                            econds and minutes 
+                                                            region, while keepi
+                                                            ng the hours and di
+                                                            viding bits still t
+                                                            here
+  155 00000114 E0066007        and              r6,r7
+  156 00000118 E1A05605        lsl              r5,#12      ; shift the minutes
+                                                             into the correct P
+                                                            1.19 - P1.12
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+  157 0000011C E0855006        add              r5,r6       ; add the new minut
+                                                            es to the current t
+                                                            ime
+  158 00000120 E5815000        str              r5,[r1]     ; set the bits of t
+                                                            he new time
+  159 00000124 E3E06000        ldr              r6,=0xffffffff
+  160 00000128 E0255006        eor              r5,r6       ; get the 0'd out b
+                                                            its
+  161 0000012C E5825000        str              r5,[r2]     ; clear the bits th
+                                                            at are meant to be 
+                                                            0's
+  162 00000130         
+  163 00000130 E3A05000        mov              r5,#0
+  164 00000134 E5845000        str              r5,[r4]     ; clear the seconds
+                                                             in memory
+  165 00000138 E8FD80E0        ldmfd            sp!,{r5-r7,pc}^ ; return from i
+                                                            nterrupt, restoring
+                                                             pc from lr
+  166 0000013C         
+  167 0000013C         
+  168 0000013C         hourPassed
+  169 0000013C E92D40E0        stmfd            sp!,{r5-r7,lr} ; the lr will be
+                                                             restored to the pc
+                                                            
+  170 00000140         
+  171 00000140 E5945008        ldr              r5,[r4,#8]  ; read in the curre
+                                                            nt time (hours)
+  172 00000144 E2855001        add              r5,#1       ; increment the min
+                                                            utes by 1
+  173 00000148 E5845008        str              r5,[r4,#8]  ; store back the mi
+                                                            nutes into memory
+  174 0000014C E3550018        cmp              r5,#24      ; check if 24 hours
+                                                             passed
+  175 00000150 3A000000        blo              skip3
+  176 00000154 EAFFFFD7        b                fin
+  177 00000158         
+  178 00000158         skip3
+  179 00000158 EBFFFFD7        bl               divide      ; divide the time e
+                                                            lapsed
+  180 0000015C E1A06206        lsl              r6,#4       ; move the multiple
+                                                             of 10 of the elaps
+                                                            ed time into bits P
+                                                            1.7 - P1.4
+  181 00000160 E0855006        add              r5,r6       ; add the multiple 
+                                                            of 10 of the elapse
+                                                            d time with the sin
+                                                            gle digit
+  182 00000164 E5936000        ldr              r6,[r3]     ; load in the curre
+                                                            nt status of the IO
+                                                            1PIN
+  183 00000168 E59F7050        ldr              r7,=0x00f00f00 ; remove all bit
+                                                            s except the dividi
+                                                            ng bits
+  184 0000016C E0066007        and              r6,r7
+  185 00000170 E1A05C05        lsl              r5,#24      ; shift the minutes
+                                                             into the correct P
+                                                            1.31 - P1.24
+  186 00000174 E0855006        add              r5,r6       ; add the new hours
+                                                             to the current tim
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+                                                            e
+  187 00000178 E5815000        str              r5,[r1]     ; set the bits of t
+                                                            he new time
+  188 0000017C E3E06000        ldr              r6,=0xffffffff
+  189 00000180 E0255006        eor              r5,r6       ; get the 0'd out b
+                                                            its
+  190 00000184 E5825000        str              r5,[r2]     ; clear the bits th
+                                                            at are meant to be 
+                                                            0's
+  191 00000188         
+  192 00000188 E3A05000        mov              r5,#0
+  193 0000018C E5845000        str              r5,[r4]     ; clear the seconds
+                                                             in memory
+  194 00000190 E5845004        str              r5,[r4,#4]  ; clear the minutes
+                                                             in memory
+  195 00000194         
+  196 00000194 E3A05000        mov              r5,#0
+  197 00000198 E5845000        str              r5,[r4]     ; clear the seconds
+                                                             in memory
+  198 0000019C E5845004        str              r5,[r4,#4]  ; clear the minutes
+                                                             in memory 
+  199 000001A0         
+  200 000001A0 E8FD80E0        ldmfd            sp!,{r5-r7,pc}^ ; return from i
+                                                            nterrupt, restoring
+                                                             pc from lr
+  201 000001A4         
+  202 000001A4         
+  203 000001A4 FFFFF000 
+              00000000 
+              E0004000 
+              E0028018 
+              E002801C 
+              E0028014 
+              E0028010 
+              00F00F00 
+              00000000 
+              FFF00F00         AREA             InterruptStuff, CODE, READONLY
+  204 00000000 E24EE004 
+                       irqhan  sub              lr,lr,#4
+  205 00000004 E92D4003        stmfd            sp!,{r0-r1,lr} ; the lr will be
+                                                             restored to the pc
+                                                            
+  206 00000008         
+  207 00000008         ;this is the body of the interrupt handler
+  208 00000008         
+  209 00000008         ;here you'd put the unique part of your interrupt handle
+                       r
+  210 00000008         
+  211 00000008 E59F0024        ldr              r0,=t       ; load in memory ad
+                                                            dress for t
+  212 0000000C E5901000        ldr              r1,[r0]     ; read in the curre
+                                                            nt time (seconds)
+  213 00000010 E2811001        add              r1,#0x1     ; increment it by 1
+                                                            
+  214 00000014 E5801000        str              r1,[r0]     ; store back the re
+                                                            sult into memory (s
+                                                            econds)
+  215 00000018         
+  216 00000018         ;all the other stuff is "housekeeping" to save registers
+
+
+
+ARM Macro Assembler    Page 8 
+
+
+                        and acknowledge interrupts
+  217 00000018         
+  218 00000018         ;this is where we stop the timer from making the interru
+                       pt request to the VIC
+  219 00000018         ;i.e. we 'acknowledge' the interrupt
+  220 00000018 E59F0018        ldr              r0,=T0
+  221 0000001C E3A01001        mov              r1,#TimerResetTimer0Interrupt
+  222 00000020 E5801000        str              r1,[r0,#IR] ; remove MR0 interr
+                                                            upt request from ti
+                                                            mer
+  223 00000024         
+  224 00000024         ;here we stop the VIC from making the interrupt request 
+                       to the CPU:
+  225 00000024 E59F0010        ldr              r0,=VIC
+  226 00000028 E3A01000        mov              r1,#0
+  227 0000002C E5801030        str              r1,[r0,#VectAddr] ; reset VIC
+  228 00000030         
+  229 00000030 E8FD8003        ldmfd            sp!,{r0-r1,pc}^ ; return from i
+                                                            nterrupt, restoring
+                                                             pc from lr
+  230 00000034         ; and also restoring the CPSR
+  231 00000034         
+  232 00000034         
+  233 00000034 00000000 
+              E0004000 
+              FFFFF000         AREA             StoringTime, CODE, READWRITE
+  234 00000000 00 00 00 
+              00 00 00 
+              00 00 00 
+              00 00 00 t       space            4*3
+  235 0000000C         
+  236 0000000C                 END
+Command Line: --debug --diag_suppress=9931 --apcs=interwork --depend=.\objects\
+tcd.d -o.\objects\tcd.o -IC:\Keil_v5\ARM\RV31\INC -IC:\Keil_v5\ARM\CMSIS\Includ
+e -IC:\Keil_v5\ARM\INC\Philips --predefine="__EVAL SETA 1" --predefine="__UVISI
+ON_VERSION SETA 529" --list=.\listings\tcd.lst TCD.s

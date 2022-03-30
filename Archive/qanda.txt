@@ -1,0 +1,19 @@
+Question 1)
+	-The subroutine must utilize the limited amount of registers and memory in a efficent manner and make sure 
+	 that they are not being overused. On top of this, we need to save the contents of registers before 
+	 we use them in the subroutine, we should also only define safe memory.
+
+Question 2)
+	-My subroutine pushes any registers that are used in the subroutine onto the stack (which is cheap) and then
+	 pops them back off to save their previous contents, and it also uses a small amount of registers. 
+
+Question 3)
+	-I would check my subroutine using normal values but also large values that may create a "deep recursion".
+
+Question 4)
+	-Since 64-bit values can in reality hold numbers in the billions and even more, multiplying them using
+	 addition would result in trillions of operations which would be very inefficent.
+
+Question 5)
+	-If there was a very deep recursion then the result might not fit into 64-bits which would give and 
+	 inaccurate result, this will also fill up the stack which has limited memory.

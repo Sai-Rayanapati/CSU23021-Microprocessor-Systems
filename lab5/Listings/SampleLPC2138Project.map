@@ -1,0 +1,120 @@
+Component: ARM Compiler 5.06 update 6 (build 750) Tool: armlink [4d35ed]
+
+==============================================================================
+
+Section Cross References
+
+    startup.o(RESET) refers to startup.o(STACK) for Stack_Top
+    startup.o(RESET) refers to tcd.o(tcd) for __main
+    startup.o(.text) refers to startup.o(HEAP) for Heap_Mem
+    startup.o(.text) refers to startup.o(STACK) for Stack_Mem
+    tcd.o(tcd) refers to tcd.o(tcddata) for MatB
+    tcd.o(tcd) refers to tcd.o(tcdresult) for MatC
+
+
+==============================================================================
+
+Image Symbol Table
+
+    Local Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    RESET                                    0x00000000   Section      272  startup.o(RESET)
+    Startup.s                                0x00000000   Number         0  startup.o ABSOLUTE
+    TCD.s                                    0x00000000   Number         0  tcd.o ABSOLUTE
+    Undef_Handler                            0x00000040   ARM Code       4  startup.o(RESET)
+    SWI_Handler                              0x00000044   ARM Code       4  startup.o(RESET)
+    PAbt_Handler                             0x00000048   ARM Code       4  startup.o(RESET)
+    DAbt_Handler                             0x0000004c   ARM Code       4  startup.o(RESET)
+    IRQ_Handler                              0x00000050   ARM Code       4  startup.o(RESET)
+    FIQ_Handler                              0x00000054   ARM Code       4  startup.o(RESET)
+    .text                                    0x00000110   Section       32  startup.o(.text)
+    tcd                                      0x00000130   Section       84  tcd.o(tcd)
+    tcddata                                  0x00000184   Section       36  tcd.o(tcddata)
+    MatA                                     0x00000184   Data          12  tcd.o(tcddata)
+    MatB                                     0x00000190   Data           8  tcd.o(tcddata)
+    tcdresult                                0x40000000   Section        8  tcd.o(tcdresult)
+    MatC                                     0x40000000   Data           8  tcd.o(tcdresult)
+    HEAP                                     0x40000008   Section        0  startup.o(HEAP)
+    STACK                                    0x40000008   Section     1160  startup.o(STACK)
+    Heap_Mem                                 0x40000008   Data           0  startup.o(HEAP)
+    Stack_Mem                                0x40000008   Data        1024  startup.o(STACK)
+    Stack_Top                                0x40000490   Data           0  startup.o(STACK)
+
+    Global Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    BuildAttributes$$THM_ISAv1$ARM_ISAv4$S$PE$A:L22$X:L11$S22$IEEE1$IW$USESV6$~STKCKD$USESV7$~SHL$OSPACE$EBA8$STANDARDLIB$PRES8$EABIv2 0x00000000   Number         0  anon$$obj.o ABSOLUTE
+    Reset_Handler                            0x00000058   ARM Code       0  startup.o(RESET)
+    __user_initial_stackheap                 0x00000110   ARM Code       0  startup.o(.text)
+    __main                                   0x00000130   ARM Code       0  tcd.o(tcd)
+
+
+
+==============================================================================
+
+Memory Map of the image
+
+  Image Entry point : 0x00000000
+
+  Load Region LR_IROM1 (Base: 0x00000000, Size: 0x000001b0, Max: 0x00080000, ABSOLUTE)
+
+    Execution Region ER_IROM1 (Exec base: 0x00000000, Load base: 0x00000000, Size: 0x000001a8, Max: 0x00080000, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x00000000   0x00000000   0x00000110   Code   RO            3  * RESET               startup.o
+    0x00000110   0x00000110   0x00000020   Code   RO            4    .text               startup.o
+    0x00000130   0x00000130   0x00000054   Code   RO           11    tcd                 tcd.o
+    0x00000184   0x00000184   0x00000024   Data   RO           12    tcddata             tcd.o
+
+
+    Execution Region RW_IRAM1 (Exec base: 0x40000000, Load base: 0x000001a8, Size: 0x00000490, Max: 0x00008000, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x40000000   0x000001a8   0x00000008   Data   RW           13    tcdresult           tcd.o
+    0x40000008        -       0x00000000   Zero   RW            2    HEAP                startup.o
+    0x40000008        -       0x00000488   Zero   RW            1    STACK               startup.o
+
+
+==============================================================================
+
+Image component sizes
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
+
+       304         60          0          0       1160        540   startup.o
+        84         12         36          8          0        216   tcd.o
+
+    ----------------------------------------------------------------------
+       388         72         36          8       1160        756   Object Totals
+         0          0          0          0          0          0   (incl. Generated)
+         0          0          0          0          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+         0          0          0          0          0          0   Library Totals
+         0          0          0          0          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+==============================================================================
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
+
+       388         72         36          8       1160        756   Grand Totals
+       388         72         36          8       1160        756   ELF Image Totals
+       388         72         36          8          0          0   ROM Totals
+
+==============================================================================
+
+    Total RO  Size (Code + RO Data)                  424 (   0.41kB)
+    Total RW  Size (RW Data + ZI Data)              1168 (   1.14kB)
+    Total ROM Size (Code + RO Data + RW Data)        432 (   0.42kB)
+
+==============================================================================
+

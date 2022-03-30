@@ -1,0 +1,96 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Sample program makes the 4 LEDs P1.16, P1.17, P1.18, P
+                       1.19 go on and off in sequence
+    2 00000000         ; (c) Mike Brady, 2020.
+    3 00000000         
+    4 00000000                 area             tcd,code,readonly
+    5 00000000                 export           __main
+    6 00000000         __main
+    7 00000000 E0028018 
+                       IO1DIR  EQU              0xE0028018
+    8 00000000 E0028014 
+                       IO1SET  EQU              0xE0028014
+    9 00000000 E002801C 
+                       IO1CLR  EQU              0xE002801C
+   10 00000000 E0028010 
+                       IO1PIN  EQU              0xE0028010  ; guess
+   11 00000000         
+   12 00000000 E59F0048        ldr              r0,=IO1DIR
+   13 00000004 E3A0100F        mov              r1,#0x0000000F ; might rightmos
+                                                            t 4 bits outputs
+   14 00000008 E5801000        str              r1,[r0]     ; set the outputs
+   15 0000000C E59F4040        ldr              r4,=IO1PIN
+   16 00000010         
+   17 00000010         
+   18 00000010         loop
+   19 00000010 E59F0040        ldr              r0,=sample
+   20 00000014 E5901000        ldr              r1,[r0]
+   21 00000018 E59F003C        ldr              r0,=lut
+   22 0000001C         
+   23 0000001C         next
+   24 0000001C E5902000        ldr              r2,[r0]     ; the power of 10 w
+                                                            e wish to subtract.
+                                                            ..
+   25 00000020 E3520000        cmp              r2,#0
+   26 00000024 0AFFFFF9        beq              loop        ; do it all again
+   27 00000028 E3A03000        mov              r3,#0
+   28 0000002C         kg
+   29 0000002C E2833001        add              r3,#1
+   30 00000030 E0511002        subs             r1,r2       ; trial subtraction
+                                                            
+   31 00000034 5AFFFFFC        bpl              kg          ; keep subtracting 
+                                                            until the result go
+                                                            es negative
+   32 00000038 E2433001        sub              r3,#1
+   33 0000003C E0811002        add              r1,r2       ; undo the last sub
+                                                            traction
+   34 00000040         
+   35 00000040         ; r3 contains the binary of the next digit we wish to di
+                       splay
+   36 00000040 E5843000        str              r3,[r4]     ; output to the dis
+                                                            play
+   37 00000044 E2800004        add              r0,#4       ; got to the next e
+                                                            ntry in the LUT
+   38 00000048 EAFFFFF3        b                next
+   39 0000004C         
+   40 0000004C         
+   41 0000004C         
+   42 0000004C EAFFFFFE 
+                       fin     b                fin
+   43 00000050         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   44 00000050 E0028018 
+              E0028010 
+              00000000 
+              00000000         area             tcdro,data,readonly
+   45 00000000         sample
+   46 00000000 4ABCD123        dcd              0x4ABCD123
+   47 00000004         
+   48 00000004 3B9ACA00 
+                       lut     dcd              1000000000
+   49 00000008 05F5E100        dcd              100000000
+   50 0000000C 00989680        dcd              10000000
+   51 00000010 000F4240        dcd              1000000
+   52 00000014 000186A0        dcd              100000
+   53 00000018 00002710        dcd              10000
+   54 0000001C 000003E8        dcd              1000
+   55 00000020 00000064        dcd              100
+   56 00000024 0000000A        dcd              10
+   57 00000028 00000001        dcd              1
+   58 0000002C 00000000        dcd              0           ; sentinel value
+   59 00000030         
+   60 00000030                 end
+Command Line: --debug --diag_suppress=9931 --apcs=interwork --depend=.\objects\
+tcd.d -o.\objects\tcd.o -IC:\Keil_v5\ARM\RV31\INC -IC:\Keil_v5\ARM\CMSIS\Includ
+e -IC:\Keil_v5\ARM\INC\Philips --predefine="__EVAL SETA 1" --predefine="__UVISI
+ON_VERSION SETA 529" --list=.\listings\tcd.lst TCD.s

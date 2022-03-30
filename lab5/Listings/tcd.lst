@@ -1,0 +1,83 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 area             tcd,code,readonly
+    2 00000000                 export           __main
+    3 00000000         __main
+    4 00000000         
+    5 00000000         
+    6 00000000 E59FA040        ldr              r10,=MatB   ; for manipulation 
+                                                            in the loop
+    7 00000004 E59F2040        ldr              r2,=MatC
+    8 00000008         
+    9 00000008 E3A09002        mov              r9,#2       ; for 2 columns
+   10 0000000C         
+   11 0000000C E1A0100A 
+                       bd2     mov              r1,r10      ; point to the star
+                                                            t of the relevant c
+                                                            olumn
+   12 00000010 E59F0038        ldr              r0,=MatA    ; here it will be r
+                                                            eset each time arou
+                                                            nd the loop
+   13 00000014 E3A03000        mov              r3,#0       ; for accumulating 
+                                                            partial results
+   14 00000018 E3A08003        mov              r8,#3       ; for 3 rows
+   15 0000001C E4906004 
+                       bd1     ldr              r6,[r0],#4  ; and point to the 
+                                                            next element in the
+                                                             row
+   16 00000020 E4917008        ldr              r7,[r1],#4*2 ; and point to the
+                                                             next element in th
+                                                            e column
+   17 00000024 E0845796        umull            r5,r4,r6,r7 ; we're assuming re
+                                                            sult fits in r5
+   18 00000028 E0833005        add              r3,r5       ; add this in
+   19 0000002C E2588001        subs             r8,#1
+   20 00000030 1AFFFFF9        bne              bd1
+   21 00000034 E4823004        str              r3,[r2],#4  ; save partial resu
+                                                            lt
+   22 00000038 E28AA004        add              r10,#4      ; point to the star
+                                                            t of the next colum
+                                                            n
+   23 0000003C E2599001        subs             r9,#1       ; go to the next co
+                                                            lumn
+   24 00000040 1AFFFFF1        bne              bd2         ; loop until all co
+                                                            lumns are done
+   25 00000044         ; but but, r0 and r1 are not pointing to the correct ite
+                       ms.
+   26 00000044         
+   27 00000044 EAFFFFFE 
+                       fin     b                fin
+   28 00000048         
+   29 00000048 00000000 
+              00000000 
+              00000000         area             tcddata,data,readonly
+   30 00000000 00000001 
+              00000004 
+              00000006 MatA    dcd              1,4,6
+   31 0000000C 00000002 
+              00000003 MatB    dcd              2,3
+   32 00000014 00000005 
+              00000008         dcd              5,8
+   33 0000001C 00000007 
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+              00000009         dcd              7,9
+   34 00000024         
+   35 00000024                 area             tcdresult,data,readwrite
+   36 00000000 00 00 00 
+              00 00 00 
+              00 00    MatC    space            2 * 4       ; space for two fou
+                                                            r-byte elements
+   37 00000008                 end
+Command Line: --debug --diag_suppress=9931 --apcs=interwork --depend=.\objects\
+tcd.d -o.\objects\tcd.o -IC:\Keil_v5\ARM\RV31\INC -IC:\Keil_v5\ARM\CMSIS\Includ
+e -IC:\Keil_v5\ARM\INC\Philips --predefine="__EVAL SETA 1" --predefine="__UVISI
+ON_VERSION SETA 526" --list=.\listings\tcd.lst TCD.s

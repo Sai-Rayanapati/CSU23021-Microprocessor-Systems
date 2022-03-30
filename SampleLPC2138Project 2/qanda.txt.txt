@@ -1,0 +1,19 @@
+1.What does “well behaved” mean in the context of subroutines?
+A) Subroutines inorder to be used must be safe to use and well behaved. A well behaved subroutine is one in which when the
+subroutine is called it must not damage the original contents of the registers in the calling program. It should not change the 
+contents of the memory locations being used. 
+
+2.Explain how/why your subroutine is “well behaved”.
+A) In my subroutine, when i enter my subroutine i have stored all the values of the registers by pushing them onto a fully descending 
+stack by using the "STMFD" instruction. Before exiting the subroutine i restored all the registers i have used to their original 
+contents by poping them from the stack using "LDMFD" instruction. Also i have made sure that my program will never enter a subroutine without 
+being called.
+
+3.How would you test that your subroutine is well behaved? 
+A) I will check if my subroutine is well behaved by checking the values of the registers and and the C bit of the CPSR 
+
+4.Why is using repeated addition to implement multiplication such a bad idea?
+A) Repeated addition is a very ineffective compared to multiplication. It takes up many lines of code. 
+
+5.What would happen to the program if a very large number of recursive calls were made, i.e. if there was very "deep" recursion?
+A) Deep recursion is bad because it exhausts the computer's resources. It makes the program ineffective and slow

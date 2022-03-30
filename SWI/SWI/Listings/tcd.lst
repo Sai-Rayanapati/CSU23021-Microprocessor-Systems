@@ -1,0 +1,87 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Sample program makes the 4 LEDs P1.16, P1.17, P1.18, P
+                       1.19 go on and off in sequence
+    2 00000000         ; (c) Mike Brady, 2020.
+    3 00000000         
+    4 00000000                 area             tcd,code,readonly
+    5 00000000                 export           __main
+    6 00000000         __main
+    7 00000000 E0028018 
+                       IO1DIR  EQU              0xE0028018
+    8 00000000 E0028014 
+                       IO1SET  EQU              0xE0028014
+    9 00000000 E002801C 
+                       IO1CLR  EQU              0xE002801C
+   10 00000000         
+   11 00000000 E59F105C        ldr              r1,=IO1DIR
+   12 00000004 E3A0280F        ldr              r2,=0x000f0000 ;select P1.19--P
+                                                            1.16
+   13 00000008 E5812000        str              r2,[r1]     ;make them outputs
+   14 0000000C E59F1054        ldr              r1,=IO1SET
+   15 00000010 E5812000        str              r2,[r1]     ;set them to turn t
+                                                            he LEDs off
+   16 00000014 E59F2050        ldr              r2,=IO1CLR
+   17 00000018         
+   18 00000018 EF00030A        svc              0x00030a    ; multiply each of 
+                                                            r0 -- r3 by 10
+   19 0000001C         ; r1 points to the SET register
+   20 0000001C         ; r2 points to the CLEAR register
+   21 0000001C         
+   22 0000001C E3A05601        ldr              r5,=0x00100000 ; end when the m
+                                                            ask reaches this va
+                                                            lue
+   23 00000020 E3A03801 
+                       wloop   ldr              r3,=0x00010000 
+                                                            ; start with P1.16.
+                                                            
+   24 00000024 E5823000 
+                       floop   str              r3,[r2]     ; clear the bit -> 
+                                                            turn on the LED
+   25 00000028         
+   26 00000028         ;delay for about a half second
+   27 00000028 E59F4040        ldr              r4,=4000000
+   28 0000002C E2544001 
+                       dloop   subs             r4,r4,#1
+   29 00000030 1AFFFFFD        bne              dloop
+   30 00000034         
+   31 00000034 E5813000        str              r3,[r1]     ;set the bit -> tur
+                                                            n off the LED
+   32 00000038 E1A03083        mov              r3,r3,lsl #1 ;shift up to next 
+                                                            bit. P1.16 -> P1.17
+                                                             etc.
+   33 0000003C E1530005        cmp              r3,r5
+   34 00000040 1AFFFFF7        bne              floop
+   35 00000044 EAFFFFF5        b                wloop
+   36 00000048         
+   37 00000048                 export           myswihandler
+   38 00000048         myswihandler
+   39 00000048 E51EC004        ldr              r12,[r14, #-4] ; get hold of th
+                                                            e instruction itsel
+                                                            f
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   40 0000004C E1A0B42C        mov              r11,r12,lsr #8
+   41 00000050 E1A0A82C        mov              r10,r12,lsr #16
+   42 00000054 E20CC0FF        and              r12,#0xff
+   43 00000058 E20BB0FF        and              r11,#0xff
+   44 0000005C E20AA0FF        and              r10,#0xff
+   45 00000060         
+   46 00000060 EAFFFFFE        b                myswihandler
+   47 00000064                 end
+              E0028018 
+              E0028014 
+              E002801C 
+              003D0900 
+Command Line: --debug --diag_suppress=9931 --apcs=interwork --depend=.\objects\
+tcd.d -o.\objects\tcd.o -IC:\Keil_v5\ARM\RV31\INC -IC:\Keil_v5\ARM\CMSIS\Includ
+e -IC:\Keil_v5\ARM\INC\Philips --predefine="__EVAL SETA 1" --predefine="__UVISI
+ON_VERSION SETA 529" --list=.\listings\tcd.lst TCD.s

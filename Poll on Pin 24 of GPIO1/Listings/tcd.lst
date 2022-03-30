@@ -1,0 +1,41 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Sample program makes the 4 LEDs P1.16, P1.17, P1.18, P
+                       1.19 go on and off in sequence
+    2 00000000         ; (c) Mike Brady, 2020.
+    3 00000000         
+    4 00000000                 area             tcd,code,readonly
+    5 00000000                 export           __main
+    6 00000000         __main
+    7 00000000         
+    8 00000000 E0028010 
+                       IO1PIN  EQU              0xE0028010
+    9 00000000         
+   10 00000000 E59F0018        ldr              r0,=IO1PIN  ; point to the pin 
+                                                            register of GPIO1
+   11 00000004 E3A02401        mov              r2,#0x01000000 
+                                                            ; mask for bit 24
+   12 00000008         
+   13 00000008         ploop
+   14 00000008 E5901000        ldr              r1,[r0]     ; read all the pin 
+                                                            values
+   15 0000000C E0011002        and              r1,r2       ; set all bits to z
+                                                            ero except for bit 
+                                                            24
+   16 00000010 E1510002        cmp              r1,r2       ; is bit 24 set?
+   17 00000014 0AFFFFFB        beq              ploop       ; branch if so
+   18 00000018 E1A00000        nop
+   19 0000001C         
+   20 0000001C         
+   21 0000001C         wloop
+   22 0000001C EAFFFFFE        b                wloop
+   23 00000020                 end
+              E0028010 
+Command Line: --debug --diag_suppress=9931 --apcs=interwork --depend=.\objects\
+tcd.d -o.\objects\tcd.o -IC:\Keil_v5\ARM\RV31\INC -IC:\Keil_v5\ARM\CMSIS\Includ
+e -IC:\Keil_v5\ARM\INC\Philips --predefine="__EVAL SETA 1" --predefine="__UVISI
+ON_VERSION SETA 529" --list=.\listings\tcd.lst TCD.s

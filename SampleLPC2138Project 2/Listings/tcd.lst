@@ -1,0 +1,153 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Sample program makes the 4 LEDs P1.16, P1.17, P1.18, P
+                       1.19 go on and off in sequence
+    2 00000000         ; (c) Mike Brady, 2020.
+    3 00000000         
+    4 00000000                 area             tcd,code,readonly
+    5 00000000                 export           __main
+    6 00000000         __main
+    7 00000000         
+    8 00000000 E59F20D4        LDR              R2,= num
+    9 00000004 E5920000        LDR              R0,[R2]     ; load 5
+   10 00000008 E59F20D0        LDR              R2, =res
+   11 0000000C E5820000        STR              R0,[R2]
+   12 00000010 E2822004        ADD              R2,R2,#4
+   13 00000014 E5821000        STR              R1,[R2]
+   14 00000018         
+   15 00000018 E59F20C4        LDR              R2,= num1
+   16 0000001C E5920000        LDR              R0,[R2]     ; load 14
+   17 00000020 EB000012        BL               fact
+   18 00000024 E59F20BC        LDR              R2, =res1
+   19 00000028 E5820000        STR              R0,[R2]
+   20 0000002C E2822004        ADD              R2,R2,#4
+   21 00000030 E5821000        STR              R1,[R2]
+   22 00000034         
+   23 00000034 E59F20B0        LDR              R2,= num2
+   24 00000038 E5920000        LDR              R0,[R2]     ; load 20
+   25 0000003C EB00000B        BL               fact
+   26 00000040 E59F20A8        LDR              R2, =res2
+   27 00000044 E5820000        STR              R0,[R2]
+   28 00000048 E2822004        ADD              R2,R2,#4
+   29 0000004C E5821000        STR              R1,[R2]
+   30 00000050         
+   31 00000050 E59F209C        LDR              R2,= num3
+   32 00000054 E5920000        LDR              R0,[R2]     ; load 30
+   33 00000058 EB000004        BL               fact
+   34 0000005C E59F2094        LDR              R2, =res3
+   35 00000060 E5820000        STR              R0,[R2]
+   36 00000064 E2822004        ADD              R2,R2,#4
+   37 00000068 E5821000        STR              R1,[R2]
+   38 0000006C         
+   39 0000006C         
+   40 0000006C EAFFFFFE 
+                       fin     b                fin
+   41 00000070         
+   42 00000070         fact
+   43 00000070 E92D4068        STMFD            SP!,{LR,R3,R5,R6} ; Push the re
+                                                            gisters onto the st
+                                                            ack 
+   44 00000074         
+   45 00000074 E3A03000        MOV              R3, #0x00000000 ; R3 is used to
+                                                             set the CPSR
+   46 00000078 E3540000        CMP              R4, #0      ;
+   47 0000007C 03A04001        MOVEQ            R4,#1       ; Set R4=1 if it eq
+                                                            uals 0
+   48 00000080 E3500000        CMP              R0,#0       ; Check if R0(Input
+                                                             value initially) t
+                                                            he decrasing =0 
+   49 00000084 0A00000B        BEQ              strR0R1
+   50 00000088         
+   51 00000088 E0854490        UMULL            R4,R5,R0,R4 ; multiply 2 32bit 
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                                                            values and store th
+                                                            e 64 bit result in 
+                                                            R4 and R5
+   52 0000008C E0861190        UMULL            R1,R6,R0,R1 ;
+   53 00000090 E0811005        ADD              R1,R1,R5
+   54 00000094 E3560000        CMP              R6,#0
+   55 00000098 0A000004        BEQ              cZero
+   56 0000009C E3A03202        MOV              R3, #0x20000000 
+                                                            ; Set the C bit 
+   57 000000A0 E128F003        MSR              CPSR_f, R3  ; Set the C bit of 
+                                                            the CPSR to 1
+   58 000000A4 E3A00000        MOV              R0, #0x00000000 ; Move 0 to R0
+   59 000000A8 E3A01000        MOV              R1, #0x00000000 ; Move 0 to R1
+   60 000000AC EA000007        B                factReturn
+   61 000000B0         
+   62 000000B0         cZero
+   63 000000B0 E2400001        SUB              R0,R0,#1    ; (N-1)
+   64 000000B4 EBFFFFED        BL               fact        ; fact(n-1)
+   65 000000B8         
+   66 000000B8         strR0R1
+   67 000000B8 E3540000        CMP              R4,#0       ; R4!=0 ( RETURN R1
+                                                             AND R0)
+   68 000000BC 0A000003        BEQ              factReturn
+   69 000000C0 E1A00001        MOV              R0,R1       ; Move MSB into R0
+   70 000000C4 E1A01004        MOV              R1,R4       ; Move LSB intp R1
+   71 000000C8 E3A04000        MOV              R4,#0       ; R4 set to zero to
+                                                             ensure the subrout
+                                                            ine is well behaved
+                                                             
+   72 000000CC EAFFFFFF        B                factReturn
+   73 000000D0         
+   74 000000D0         factReturn
+   75 000000D0 E128F003        MSR              CPSR_f, R3  ; Set the C bit of 
+                                                            the CPSR
+   76 000000D4 E8BD4068        LDMFD            SP!,{LR,R3,R5,R6} ; Restore reh
+                                                             stored refisret va
+                                                            lues
+   77 000000D8 E12FFF1E        BX               LR
+   78 000000DC         
+   79 000000DC 00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000         area             stuffnum,data,READONLY
+   80 00000000 00000005 
+                       num     dcd              5
+   81 00000004 0000000E 
+                       num1    dcd              14
+   82 00000008 00000014 
+                       num2    dcd              20
+   83 0000000C 0000001E 
+                       num3    dcd              30
+   84 00000010         
+   85 00000010                 area             stuff,data,readwrite
+   86 00000000 00 00 00 
+              00 00 00 
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+              00 00    res     space            8
+   87 00000008 00 00 00 
+              00 00 00 
+              00 00    res1    space            8
+   88 00000010 00 00 00 
+              00 00 00 
+              00 00    res2    space            8
+   89 00000018 00 00 00 
+              00 00 00 
+              00 00    res3    space            8
+   90 00000020         
+   91 00000020         
+   92 00000020                 end
+Command Line: --debug --diag_suppress=9931 --apcs=interwork --depend=.\objects\
+tcd.d -o.\objects\tcd.o -IC:\Keil_v5\ARM\RV31\INC -IC:\Keil_v5\ARM\CMSIS\Includ
+e -IC:\Keil_v5\ARM\Inc\Philips --predefine="__EVAL SETA 1" --predefine="__UVISI
+ON_VERSION SETA 516" --list=.\listings\tcd.lst TCD.s

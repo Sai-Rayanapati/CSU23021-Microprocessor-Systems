@@ -1,0 +1,20 @@
+Question 1) 
+	I/O devices are given locations in what would normally be thought of as memory space of the computer.
+	That is, I/O devieces are mapped to small numbers of memory locations (known as "Memory Mapped").
+
+Question 2)
+	The difference isn't significant from the CPU point of view as it is still a piece of memory, but the
+	developer should be careful using the byte-sized memory-mapped interface registerm and should only be 
+	used as it is specified in the user manual.
+	
+Question 3)
+	Polling is said to be inefficient because it's a waste of time in a system that is also atempting to
+	perform other operations as polling will take up CPU cycles that can be used by other processes.
+
+Question 4)
+	To organize polling of two or more interfaces, we could have and array of subroutine handlers, or 
+	we could have the interfaces in a loop, one after another.
+
+Question 5)
+	Polling is said to be inefficient power-wise because most of the time you are checking for a change that 
+	has yet not occurred, meaning it's a waste of CPU cycles and energy.
